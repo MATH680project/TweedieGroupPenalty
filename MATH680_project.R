@@ -40,3 +40,5 @@ H.tilde.j = v.tilde.i*x.ij%*%t(x.ij)
 b.moon.j.new  = ((gamma.j*beta.moon.j-U.moon.j)*(1-(gamma*w.j)/(<some crap>)))/gamma.j
 
 # update the intercept using U.moon.0 and gamma.tilde.0 = H.tilde.0 = tralalala 
+
+# try to change 
