@@ -1,3 +1,15 @@
+#MATH 680 – Computation Intensive Statistics
+#Final Project
+#The Tweedie and Group Penalty Problem
+
+#December 22, 2016
+
+#Prepared by:
+#Pavel Slavchec & Roba Bairakdar
+
+#Submitted to:
+#Yi Yang
+
 setwd("C:/Users/paul/Desktop/McGill-Graduate/F2016/MATH 680/Project/typed/code and data")
 
 data = load("dat_clean.rda")
