@@ -10,12 +10,45 @@
 #Submitted to:
 #Yi Yang
 
-setwd("C:/Users/paul/Desktop/McGill-Graduate/F2016/MATH 680/Project/typed/code and data")
+######################################################################
+#Data manipulation
+load(paste(getwd(),"/dat_clean.rda",sep=""))
+data=dat
 
-data = load("dat_clean.rda")
-head(dat)
-str(dat)
- 
+#response variable
+y=data[,"CLM_AMT5"]
+
+#numerical variables
+x_num=cbind(data[,"KIDSDRIV"],data[,"TRAVTIME"],data[,"CAR_USE"],data[,"BLUEBOOK"],data[,"RETAINED"],
+            data[,"NPOLICY"],data[,"RED_CAR"],data[,"REVOLKED"],data[,"MVR_PTS"],data[,"AGE"],
+            data[,"HOMEKIDS"],data[,"YOJ"],data[,"INCOME"],data[,"GENDER"],data[,"MARRIED"],
+            data[,"PARENT1"],data[,"HOME_VAL"],data[,"SAMEHOME"],data[,"AREA"])
+name=c("KIDSDRIV","TRAVTIME","CAR_USE","BLUEBOOK","RETAINED","NPOLICY","RED_CAR","REVOLKED",
+       "MVR_PTS","AGE","HOMEKIDS","YOJ","INCOME","GENDER","MARRIED","PARENT1","HOME_VAL","SAMEHOME"
+       ,"AREA")
+colnames(x_num)=name
+
+#categorical variables
+x_cat=cbind(data[,"CAR_TYPE_2"],data[,"CAR_TYPE_3"],data[,"CAR_TYPE_4"],data[,"CAR_TYPE_5"],
+            data[,"CAR_TYPE_6"],data[,"JOBCLASS_2"],data[,"JOBCLASS_3"],data[,"JOBCLASS_4"],
+            data[,"JOBCLASS_5"],data[,"JOBCLASS_6"],data[,"JOBCLASS_7"],data[,"JOBCLASS_8"],
+            data[,"JOBCLASS_9"],data[,"MAX_EDUC_2"],data[,"MAX_EDUC_3"],data[,"MAX_EDUC_4"],
+            data[,"MAX_EDUC_5"])
+name=c("CAR_TYPE_2","CAR_TYPE_3","CAR_TYPE_4","CAR_TYPE_5","CAR_TYPE_6","JOBCLASS_2",
+       "JOBCLASS_3","JOBCLASS_4","JOBCLASS_5","JOBCLASS_6","JOBCLASS_7","JOBCLASS_8",
+       "JOBCLASS_9","MAX_EDUC_2","MAX_EDUC_3","MAX_EDUC_4","MAX_EDUC_5")
+colnames(x_cat)=name
+
+#predictors
+x=cbind(x_num,x_cat)
+
+#dimentions of variables
+n=nrow(x)
+p=ncol(x)
+grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol(x_num)+3,4))
+
+######################################################################
+#Data analysis 
 set.seed(680)
 p      = runif(1, 1,2)
 lambda = runif(1, 1,10)
