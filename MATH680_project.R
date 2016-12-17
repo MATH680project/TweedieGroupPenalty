@@ -60,9 +60,10 @@ length(w.j) # check, has length 35
 
 #Data analysis 
 set.seed(680)
-p      = runif(1, 1,2)
+rho    = runif(1, 1,2)
 lambda = runif(1, 1,10)
-n      = nrow(dat)
+n      = nrow(data
+             )
 v.i    = 1/n
 
 # y.i is the i-th response
@@ -90,11 +91,36 @@ y.tilde = b0.tilde +
 
 
 #########################################################################################################
-v.tilde.i = v.i*((p-1)*y.i*exp(-(p-1)*(b0.tilde+b.tilde%*%x.i))+(2-p)*exp((2-p)*(b0.tilde+b.tilde%*%x.i)))
+
+# basic formula each observations, to be vectorized 
+
+v.tilde.i = v.i*((rho-1)*y.i*exp(-(rho-1)*(b0.tilde+b.tilde%*%x.i))+(2-rho)*exp((2-rho)*(b0.tilde+b.tilde%*%x.i)))
 
 y.tilde.i = b0.tilde + 
             b.tilde*x.i+
-            (v.i/v.tilde.i)*(y.i*exp(-(p-1)*(b0.tilde+b.tilde%*%x.i))+exp((2-p)*(b0.tilde+b.tilde%*%x.i)))
+            (v.i/v.tilde.i)*(y.i*exp(-(rho-1)*(b0.tilde+b.tilde%*%x.i))+exp((2-rho)*(b0.tilde+b.tilde%*%x.i)))
+
+#########################################################################################################
+
+# added on Dec. 16
+
+# computation of l.Q
+
+l.Q.v = (1/2)*v.tilde*(y.tilde-b0.tilde-b.tilde%*%t(x))^2
+l.Q= sum(l.Q.v); l.Q
+
+
+
+
+dim(crossprod(y.tilde, (-b0.tilde-b.tilde%*%t(x)))) # can be removed 
+
+dim(y.tilde-b0.tilde-b.tilde%*%t(x))
+(y.tilde-b0.tilde-b.tilde%*%t(x))^2
+
+#-------------------------------------------------------------------------------------------------------#
+# try to code the Hessian thing 
+
+H = vector("list", J)  
 
 l.Q = (1/2)*v.tilde.i*(y.tilde.i-b0-b%*%x.i)^2 # missing that constant terms he has, not sure what it is 
 
