@@ -48,18 +48,22 @@ p=ncol(x)
 grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol(x_num)+3,4))
 
 ######################################################################
+
+# added on Dec. 16 
+
+size.group = as.numeric(table(grouping)) # has length 22
+J          = length(size.group)
+w.j        = round(sqrt(as.numeric(table(grouping))), 3)
+w.j        = c(w.j[1:19], rep(w.j[20], 5), rep(w.j[21], 8), rep(w.j[22], 4))
+length(w.j) # check, has length 36 
+#########################################################################################################
+
 #Data analysis 
 set.seed(680)
 p      = runif(1, 1,2)
 lambda = runif(1, 1,10)
 n      = nrow(dat)
 v.i    = 1/n
-
-# need to set w.j
-
-# need to create the groups 
-
-
 
 # y.i is the i-th response
 # x.i is the i-th row 
