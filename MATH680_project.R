@@ -145,6 +145,8 @@ l.Q = (1/2)*v.tilde.i*(y.tilde.i-b0-b%*%x.i)^2 # missing that constant terms he 
 
 U.tilde.j = -v.tilde.i*(y.tilde.i-b0-b%*%x.i)*x.ij
 
+U.moon.j  = # U.tilde.j evaluated at b0 = b.moon.0 and b = b.moon.j
+
 H.tilde.j = v.tilde.i*x.ij%*%t(x.ij)
 
 # from H.tilde.j you need to somehow find the ?max eigenvalue, call it gamma.j?
@@ -153,6 +155,19 @@ H.tilde.j = v.tilde.i*x.ij%*%t(x.ij)
 
 b.moon.j.new  = ((gamma.j*beta.moon.j-U.moon.j)*(1-(gamma*w.j)/(<some crap>)))/gamma.j
 
+
+
+# sqrt(sum(gamma.j*b.moon.j - U.moon.j))
+
 # update the intercept using U.moon.0 and gamma.tilde.0 = H.tilde.0 = tralalala 
 
-# try to change 
+#######################################################################################################
+
+#added Dec. 17
+
+# update the intercept 
+
+U.moon.0      = -v.tilde*(y.tilde-"beta moons")
+gamma.tilde.0 = sum(v.tilde)
+
+b.moon.0.new = b.moon.0.old. -(1/gamma.tilde.0)*U.moon.0
