@@ -68,6 +68,28 @@ v.i    = 1/n
 # y.i is the i-th response
 # x.i is the i-th row 
 
+#########################################################################################################
+
+# added on Dec. 15 
+
+
+b0.tilde  = rnorm(1)
+b.tilde   = rnorm(p)
+v.tilde = rep(0, 100)
+v.i       = 1/100
+
+
+v.tilde = v.i*((rho-1)*y[1:100]*exp(-(rho-1)*(b0.tilde+b.tilde%*%t(x[1:100,])))+
+                 (2-rho)*exp((2-rho)*(b0.tilde+b.tilde%*%t(x[1:100,]))))
+
+y.tilde = b0.tilde + 
+  b.tilde%*%t(x[1:100,])+
+  (rep(v.i, 100)/v.tilde)*(y[1:100]*exp(-(rho-1)*(b0.tilde+ b.tilde%*%t(x[1:100,])))
+                           -exp((2-rho)*(b0.tilde+ b.tilde%*%t(x[1:100,]))))
+
+
+
+#########################################################################################################
 v.tilde.i = v.i*((p-1)*y.i*exp(-(p-1)*(b0.tilde+b.tilde%*%x.i))+(2-p)*exp((2-p)*(b0.tilde+b.tilde%*%x.i)))
 
 y.tilde.i = b0.tilde + 
