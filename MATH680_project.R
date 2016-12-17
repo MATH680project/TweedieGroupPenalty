@@ -12,11 +12,13 @@
 
 ######################################################################
 #Data manipulation
+setwd("/Users/robabairakdar/Documents/Masters/Fall 2016/MATH 680 - Comp Intens Stat - McGill/Final Project")
 load(paste(getwd(),"/dat_clean.rda",sep=""))
 data=dat
 
 #response variable
 y=data[,"CLM_AMT5"]
+hist(y,main="Auto Insurance Claim Amounts",xlab="Claim Amount in '000s",breaks=30)
 
 #numerical variables
 x_num=cbind(data[,"KIDSDRIV"],data[,"TRAVTIME"],data[,"CAR_USE"],data[,"BLUEBOOK"],
@@ -42,14 +44,11 @@ colnames(x_cat)=name
 #predictors
 x=cbind(x_num,x_cat)
 
-#dimentions of variables
+#dimensions of variables
 n=nrow(x)
 p=ncol(x)
 grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol(x_num)+3,4))
-
 ######################################################################
-
-# added on Dec. 16 
 
 size.group = as.numeric(table(grouping)) # has length 21
 J          = length(size.group)
@@ -62,8 +61,7 @@ length(w.j) # check, has length 35
 set.seed(680)
 rho    = runif(1, 1,2)
 lambda = runif(1, 1,10)
-n      = nrow(data
-             )
+n      = nrow(data)
 v.i    = 1/n
 
 # y.i is the i-th response
@@ -85,8 +83,8 @@ v.tilde = v.i*((rho-1)*y[1:100]*exp(-(rho-1)*(b0.tilde+b.tilde%*%t(x[1:100,])))+
 
 y.tilde = b0.tilde + 
   b.tilde%*%t(x[1:100,])+
-  (rep(v.i, 100)/v.tilde)*(y[1:100]*exp(-(rho-1)*(b0.tilde+ b.tilde%*%t(x[1:100,])))
-                           -exp((2-rho)*(b0.tilde+ b.tilde%*%t(x[1:100,]))))
+  (rep(v.i, 100)/v.tilde)*(y[1:100]*exp(-(rho-1)*(b0.tilde+ b.tilde%*%t(x[1:100,])))-
+                           exp((2-rho)*(b0.tilde+ b.tilde%*%t(x[1:100,]))))
 
 
 
@@ -118,9 +116,28 @@ dim(y.tilde-b0.tilde-b.tilde%*%t(x))
 (y.tilde-b0.tilde-b.tilde%*%t(x))^2
 
 #-------------------------------------------------------------------------------------------------------#
-# try to code the Hessian thing 
 
-H = vector("list", J)  
+H = vector("list", J)                 
+initial_g=0
+gamma=rep(0,J)
+for(j in 1:J)
+{
+  size   = size.group[j]
+  initial_g=match(j,grouping)
+  H[[j]] = matrix(0, nrow = size , ncol = size)
+  for(i in 1:size)
+  {
+    for(k in 1:i)
+    {
+      H[[j]][i, k] = sum(v.tilde*x[,initial_g+i-1]*x[,initial_g+k-1])
+      H[[j]][k, i] = H[[j]][i, k]
+    }
+  }
+  gamma[j]=eigen(H[[j]])$values[1]
+}
+
+######################################################################################################### 
+
 
 l.Q = (1/2)*v.tilde.i*(y.tilde.i-b0-b%*%x.i)^2 # missing that constant terms he has, not sure what it is 
 
