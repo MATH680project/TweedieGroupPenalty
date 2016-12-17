@@ -19,11 +19,11 @@ data=dat
 y=data[,"CLM_AMT5"]
 
 #numerical variables
-x_num=cbind(data[,"KIDSDRIV"],data[,"TRAVTIME"],data[,"CAR_USE"],data[,"BLUEBOOK"],data[,"RETAINED"],
+x_num=cbind(data[,"KIDSDRIV"],data[,"TRAVTIME"],data[,"CAR_USE"],data[,"BLUEBOOK"],
             data[,"NPOLICY"],data[,"RED_CAR"],data[,"REVOLKED"],data[,"MVR_PTS"],data[,"AGE"],
             data[,"HOMEKIDS"],data[,"YOJ"],data[,"INCOME"],data[,"GENDER"],data[,"MARRIED"],
             data[,"PARENT1"],data[,"HOME_VAL"],data[,"SAMEHOME"],data[,"AREA"])
-name=c("KIDSDRIV","TRAVTIME","CAR_USE","BLUEBOOK","RETAINED","NPOLICY","RED_CAR","REVOLKED",
+name=c("KIDSDRIV","TRAVTIME","CAR_USE","BLUEBOOK","NPOLICY","RED_CAR","REVOLKED",
        "MVR_PTS","AGE","HOMEKIDS","YOJ","INCOME","GENDER","MARRIED","PARENT1","HOME_VAL","SAMEHOME"
        ,"AREA")
 colnames(x_num)=name
@@ -51,11 +51,11 @@ grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol
 
 # added on Dec. 16 
 
-size.group = as.numeric(table(grouping)) # has length 22
+size.group = as.numeric(table(grouping)) # has length 21
 J          = length(size.group)
 w.j        = round(sqrt(as.numeric(table(grouping))), 3)
-w.j        = c(w.j[1:19], rep(w.j[20], 5), rep(w.j[21], 8), rep(w.j[22], 4))
-length(w.j) # check, has length 36 
+w.j        = c(w.j[1:ncol(x_num)], rep(w.j[ncol(x_num)+1], 5), rep(w.j[ncol(x_num)+2], 8), rep(w.j[ncol(x_num)+3], 4))
+length(w.j) # check, has length 35 
 #########################################################################################################
 
 #Data analysis 
