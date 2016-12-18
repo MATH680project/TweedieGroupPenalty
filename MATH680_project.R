@@ -183,3 +183,5 @@ b0.tilde  = rnorm(1)
 b.tilde   = rnorm(p)
 
 GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i)
+      
+system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i))      
