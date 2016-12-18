@@ -11,13 +11,120 @@
 #Yi Yang
 
 ######################################################################
+
+ConvCheck=function(B.old,B.new,tol){
+  check=rep(NA,length(B.old))
+  for (i in 1:length(B.old)){
+    if(abs(B.old[i]-B.new[i])>tol){
+      check[i]=1
+    }else check[i]=0
+  }
+  return(sum(check))
+}
+            
+########################################################################
+#Group Lasso Function 
+GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i){
+  
+  size.group = as.numeric(table(grouping)) # has length 21
+  J          = length(size.group)
+  w.j        = round(sqrt(as.numeric(table(grouping))), 3)
+  w.j        = c(w.j[1:ncol(x_num)], rep(w.j[ncol(x_num)+1], 5), rep(w.j[ncol(x_num)+2], 8), rep(w.j[ncol(x_num)+3], 4))
+  
+  
+  iterating_outer = TRUE
+  total.iterations.outer=0
+  
+  while(iterating_outer){
+    
+    ###################### Outer layer #############################
+    b0.tilde.old=b0.tilde.new
+    b.tilde.old=b.tilde.new
+    
+    total.iterations.outer=total.iterations.outer+1
+    cat("k_outer=", total.iterations.outer, "\n") 
+    
+    v.tilde = v.i*((rho-1)*y*exp(-(rho-1)*(b0.tilde.old+b.tilde.old%*%t(x)))+
+                     (2-rho)*exp((2-rho)*(b0.tilde.old+b.tilde.old%*%t(x))))
+    
+    y.tilde = b0.tilde.old + 
+      b.tilde.old%*%t(x)+
+      (rep(v.i, n)/v.tilde)*(y*exp(-(rho-1)*(b0.tilde.old+ b.tilde.old%*%t(x)))-
+                               exp((2-rho)*(b0.tilde.old+ b.tilde.old%*%t(x))))
+    
+    H = vector("list", J)                 
+    initial_g=0
+    gammaj=rep(0,J)
+    
+    for(j in 1:J)
+    {
+      size   = size.group[j]
+      initial_g=match(j,grouping)
+      H[[j]] = matrix(0, nrow = size , ncol = size)
+      for(i in 1:size)
+      {
+        for(k in 1:i)
+        {
+          H[[j]][i, k] = sum(v.tilde*x[,initial_g+i-1]*x[,initial_g+k-1])
+          H[[j]][k, i] = H[[j]][i, k]
+        }
+      }
+      gammaj[j]=eigen(H[[j]])$values[1]
+    }
+    gamma.0 = sum(v.tilde) 
+    gamma   = c(gammaj[1:ncol(x_num)], rep(gammaj[ncol(x_num)+1], 5), rep(gammaj[ncol(x_num)+2], 8), rep(gammaj[ncol(x_num)+3], 4))
+    ###################### Innter layer #############################
+    iterating_inner=TRUE
+    total.iterations.inner=0
+    b.moon.new=b.tilde.old
+    b0.moon.new=b0.tilde.old
+    
+    while(iterating_inner){
+      
+        total.iterations.inner=total.iterations.inner+1
+        cat("k_inner=", total.iterations.inner, "\n") 
+        b.moon.old=b.moon.new
+        b0.moon.old=b0.moon.new
+        
+        for (j in 1:J)
+          # update block coefficients 
+        {
+          size   = size.group[j]
+          initial_g=match(j,grouping)
+          
+          b.moon.new= #Calculation goes here
+                   
+        }
+          b0.moon.new= #Calculation goes here
+        
+        check_inner=ConvCheck(c(b0.moon.old,b.moon.old),c(b0.moon.new,b.moon.new),tol)
+        
+        if( (check_inner==0) | (total.iterations.inner>maxit) ) iterating_inner=FALSE
+      
+
+      
+    }
+    
+    b.tilde.new=b.moon.new
+    b0.tilde.new=b0.moon.new
+    
+    check_outer=ConvCheck(c(b0.tilde.old,b.tilde.old),c(b0.tilde.new,b.tilde.new),tol)
+    
+    if( (check_outer==0) | (total.iterations.inner>maxit) ) iterating_outer=FALSE
+    
+  }
+  output=list(total.iterations.outer,b0.tilde.new,b.tilde.new)
+  return(output)
+}      
+                
+########################################################################
 #Convergence conditions
 maxit    =10000
 tol      =10^-8
 
 #Data manipulation
 setwd("/Users/robabairakdar/Documents/Masters/Fall 2016/MATH 680 - Comp Intens Stat - McGill/Final Project")
-load(paste(getwd(),"/dat_clean.rda",sep=""))
+load("dat_clean.rda")
 data=dat
 
 #response variable
@@ -53,165 +160,13 @@ n=nrow(x)
 p=ncol(x)
 grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol(x_num)+3,4))
 ######################################################################
-
-size.group = as.numeric(table(grouping)) # has length 21
-J          = length(size.group)
-w.j        = round(sqrt(as.numeric(table(grouping))), 3)
-w.j        = c(w.j[1:ncol(x_num)], rep(w.j[ncol(x_num)+1], 5), rep(w.j[ncol(x_num)+2], 8), rep(w.j[ncol(x_num)+3], 4))
-length(w.j) # check, has length 35 
-#########################################################################################################
-
-ConvCheck=function(B.old,B.new){
-  check=rep(NA,length(B.old))
-  for (i in 1:length(B.old)){
-    if(abs(B.old[i]-B.new[i])>tol){
-      check[i]=1
-    }else check[i]=0
-  }
-  sum(check)
-}
-
-########################################################################################
 #Data analysis 
 set.seed(680)
 rho    = runif(1, 1,2)
 lambda = runif(1, 1,10)
-n      = nrow(data)
 v.i    = 1/n
 
 b0.tilde  = rnorm(1)
 b.tilde   = rnorm(p)
-v.tilde = rep(0, 100)
-v.i       = 1/100
 
-iterating_outer = TRUE
-total.iterations.outer=0
-            
-while(iterating_outer){
-            
-  ###################### Outer layer #############################
-  b0.tilde.old=b0.tilde.new
-  b.tilde.old=b.tilde.new
-  
-  total.iterations.outer=total.iterations.outer+1
-                   
-  v.tilde = v.i*((rho-1)*y*exp(-(rho-1)*(b0.tilde.old+b.tilde.old%*%t(x)))+
-                   (2-rho)*exp((2-rho)*(b0.tilde.old+b.tilde.old%*%t(x))))
-
-  y.tilde = b0.tilde.old + 
-     b.tilde.old%*%t(x)+
-     (rep(v.i, n)/v.tilde)*(y*exp(-(rho-1)*(b0.tilde.old+ b.tilde.old%*%t(x)))-
-                           exp((2-rho)*(b0.tilde.old+ b.tilde.old%*%t(x))))
-
-  H = vector("list", J)                 
-  initial_g=0
-  gammaj=rep(0,J)
-  
-  for(j in 1:J)
-  {
-    size   = size.group[j]
-    initial_g=match(j,grouping)
-    H[[j]] = matrix(0, nrow = size , ncol = size)
-    for(i in 1:size)
-    {
-      for(k in 1:i)
-      {
-        H[[j]][i, k] = sum(v.tilde*x[,initial_g+i-1]*x[,initial_g+k-1])
-        H[[j]][k, i] = H[[j]][i, k]
-      }
-    }
-    gammaj[j]=eigen(H[[j]])$values[1]
-  }
-  gamma=cbind(sum(v.tilde),gammaj)
-            
-  ###################### Innter layer #############################
-  iterating_inner=TRUE
-  total.iterations.inner=0
-  b.moon.new=b.tilde.old
-  b0.moon.new=b0.tilde.old
-  
-  while(iterating_inner){        
-   
-    total.iterations.inner=total.iterations.inner+1
-    b.moon.old=b.moon.new
-    b0.moon.old=b0.moon.new
-    
-    b.moon.new= # Calculate b.moon.new and b0.moon.new
-    b0.moon.new= # Calculate b.moon.new and b0.moon.new
-      
-    check_inner=ConvCheck(c(b0.moon.old,b.moon.old),c(b0.moon.new,b.moon.new))
-    
-    if( check_inner=0 | total.iterations.inner>maxit ) iterating_inner=FALSE
-
-  }  
-              
-  b.tilde.new=b.moon.new
-  b0.tilde.new=b0.moon.new
-  
-  check_outer=ConvCheck(c(b0.tilde.old,b.tilde.old),c(b0.tilde.new,b.tilde.new))
-  
-  if( check_outer=0 | total.iterations.inner>maxit ) iterating_outer=FALSE
-}
-              
-              
-
-#########################################################################################################
-
-# basic formula each observations, to be vectorized 
-
-v.tilde.i = v.i*((rho-1)*y.i*exp(-(rho-1)*(b0.tilde+b.tilde%*%x.i))+(2-rho)*exp((2-rho)*(b0.tilde+b.tilde%*%x.i)))
-
-y.tilde.i = b0.tilde + 
-            b.tilde*x.i+
-            (v.i/v.tilde.i)*(y.i*exp(-(rho-1)*(b0.tilde+b.tilde%*%x.i))+exp((2-rho)*(b0.tilde+b.tilde%*%x.i)))
-
-#########################################################################################################
-
-# computation of l.Q
-
-l.Q.v = (1/2)*v.tilde*(y.tilde-b0.tilde-b.tilde%*%t(x))^2
-l.Q= sum(l.Q.v); l.Q
-
-
-
-
-dim(crossprod(y.tilde, (-b0.tilde-b.tilde%*%t(x)))) # can be removed 
-
-dim(y.tilde-b0.tilde-b.tilde%*%t(x))
-(y.tilde-b0.tilde-b.tilde%*%t(x))^2
-
-######################################################################################################### 
-
-
-l.Q = (1/2)*v.tilde.i*(y.tilde.i-b0-b%*%x.i)^2 # missing that constant terms he has, not sure what it is 
-
-# x.ij is for the i-th observation and ?j-th block? 
-
-U.tilde.j = -v.tilde.i*(y.tilde.i-b0-b%*%x.i)*x.ij
-
-U.moon.j  = # U.tilde.j evaluated at b0 = b.moon.0 and b = b.moon.j
-
-H.tilde.j = v.tilde.i*x.ij%*%t(x.ij)
-
-# from H.tilde.j you need to somehow find the ?max eigenvalue, call it gamma.j?
-# NOTE : need to take only the positive part which is a bit confusing (look eq.12 in his paper).  
-# Is not that just the absolute value here?  
-
-b.moon.j.new  = ((gamma.j*beta.moon.j-U.moon.j)*(1-(gamma*w.j)/(<some crap>)))/gamma.j
-
-
-
-# sqrt(sum(gamma.j*b.moon.j - U.moon.j))
-
-# update the intercept using U.moon.0 and gamma.tilde.0 = H.tilde.0 = tralalala 
-
-#######################################################################################################
-
-#added Dec. 17
-
-# update the intercept 
-
-U.moon.0      = -v.tilde*(y.tilde-"beta moons")
-gamma.tilde.0 = sum(v.tilde)
-
-b.moon.0.new = b.moon.0.old. -(1/gamma.tilde.0)*U.moon.0
+GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i)
