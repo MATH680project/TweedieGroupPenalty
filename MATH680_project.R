@@ -92,10 +92,23 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
           size   = size.group[j]
           initial_g=match(j,grouping)
           
-          b.moon.new= #Calculation goes here
+          # compute U_j expression
+          U.moon = matrix(-v.tilde*(y.tilde-b0.moon.old-b.moon.old%*%t(x)), nrow = 1 , ncol = n )%*%x[,initial_g:(initial_g+size-1)]
+          
+          # compute beta moon new 
+          
+          if((1-(lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))>0){
+            temp=(1-(lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))
+          }else temp=0
+          
+          b.moon.new[initial_g:(initial_g+size-1)] = ((gamma[initial_g]*b.moon.old[initial_g:(initial_g+size-1)]-U.moon)*
+                                                        temp)/gamma[initial_g]
+          
                    
         }
-          b0.moon.new= #Calculation goes here
+        # update beta.moon.new
+        U.moon.0    = sum(-v.tilde*(y.tilde-b0.moon.old-b.moon.new%*%t(x)))
+        b0.moon.new = b0.moon.old-(1/gamma.0)*U.moon.0
         
         check_inner=ConvCheck(c(b0.moon.old,b.moon.old),c(b0.moon.new,b.moon.new),tol)
         
