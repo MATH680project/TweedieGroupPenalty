@@ -42,7 +42,6 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
     b.tilde.old=b.tilde.new
     
     total.iterations.outer=total.iterations.outer+1
-    cat("k_outer=", total.iterations.outer, "\n") 
     
     v.tilde = v.i*((rho-1)*y*exp(-(rho-1)*(b0.tilde.old+b.tilde.old%*%t(x)))+
                      (2-rho)*exp((2-rho)*(b0.tilde.old+b.tilde.old%*%t(x))))
@@ -97,12 +96,12 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
           
           # compute beta moon new 
           
-          if((1-(lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))>0){
-            temp=(1-(lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))
+          if((1-((tau)*lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))>0){
+            temp=(1-((tau)*lambda*w.j[initial_g])/( sqrt(sum(abs(gamma[initial_g] - U.moon)^2))))
           }else temp=0
           
           b.moon.new[initial_g:(initial_g+size-1)] = ((gamma[initial_g]*b.moon.old[initial_g:(initial_g+size-1)]-U.moon)*
-                                                        temp)/gamma[initial_g]
+                                                        temp)/(gamma[initial_g]+lambda*(1-tau))
           
                    
         }
@@ -181,7 +180,11 @@ v.i    = 1/n
 
 b0.tilde  = rnorm(1)
 b.tilde   = rnorm(p)
-
-GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i)
+tau           = runif(1,0,1)
       
-system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i))      
+output_GroupLasso      =GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,1)
+output_GroupElasticNet =GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,tau)
+
+system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,1))
+system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,tau))
+
