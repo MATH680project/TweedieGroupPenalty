@@ -49,6 +49,10 @@
 ##      tol:            the convergence tolerance for the algorithm
 #######################################################################################
 
+#Needed Libraries
+library(reshape)
+library(ggplot2)
+
 #######################################################################################
 #Checking codition of convergence
 ConvCheck=function(B.old,B.new,tol){
@@ -64,7 +68,7 @@ ConvCheck=function(B.old,B.new,tol){
 #######################################################################################
 
 #Group Lasso Function 
-GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i){
+GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,tau){
   
   size.group = as.numeric(table(grouping)) # has length 21
   J          = length(size.group)
@@ -121,7 +125,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
     while(iterating_inner){
       
         total.iterations.inner=total.iterations.inner+1
-        cat("k_inner=", total.iterations.inner, "\n") 
+      
         b.moon.old=b.moon.new
         b0.moon.old=b0.moon.new
         
@@ -142,8 +146,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
           
           b.moon.new[initial_g:(initial_g+size-1)] = ((gamma[initial_g]*b.moon.old[initial_g:(initial_g+size-1)]-U.moon)*
                                                         temp)/(gamma[initial_g]+lambda*(1-tau))
-          
-                   
+                        
         }
         # update beta.moon.new
         U.moon.0    = sum(-v.tilde*(y.tilde-b0.moon.old-b.moon.new%*%t(x)))
@@ -152,9 +155,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
         check_inner=ConvCheck(c(b0.moon.old,b.moon.old),c(b0.moon.new,b.moon.new),tol)
         
         if( (check_inner==0) | (total.iterations.inner>maxit) ) iterating_inner=FALSE
-      
-
-      
+       
     }
     
     b.tilde.new=b.moon.new
@@ -165,7 +166,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
     if( (check_outer==0) | (total.iterations.inner>maxit) ) iterating_outer=FALSE
     
   }
-  output=list(total.iterations.outer,b0.tilde.new,b.tilde.new)
+  output=list(total.iterations.outer, c(b0.tilde.new,b.tilde.new))
   return(output)
 }      
                 
@@ -174,6 +175,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
 maxit    =10000
 tol      =10^-8
 
+#######################################################################################
 #Data manipulation
 setwd("/Users/robabairakdar/Documents/Masters/Fall 2016/MATH 680 - Comp Intens Stat - McGill/Final Project")
 load("dat_clean.rda")
@@ -229,3 +231,55 @@ output_GroupElasticNet =GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.
 system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,1))
 system.time(GroupLasso(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,tau))
 
+########################################################################################
+#Comparing output with a sequence of lambdas
+lambda = seq(4,30,1)
+GrpLas = matrix(rep(NA), nrow = ncol(x)+1, ncol = length(lambda))
+GrpElasNet = matrix(rep(NA), nrow = ncol(x)+1, ncol = length(lambda))
+
+
+for(l in 1:length(lambda))
+{
+  GrpLas[,l] =GroupLasso(y,x,lambda[l],rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,1)[[2]]
+  GrpElasNet[,l] =GroupLasso(y,x,lambda[l],rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i,tau)[[2]]
+}
+
+
+rownames(GrpLas) <- c("Intercept", colnames(x))
+rownames(GrpElasNet) <- c("Intercept", colnames(x))
+
+Plot1 <- data.frame(t(GrpLas))
+Plot1 <- cbind(lambda, Plot1)
+Plot1 <- melt(Plot1, id = "lambda", variable_name = "Covariate")
+
+Plot2 <- data.frame(t(GrpElasNet))
+Plot2 <- cbind(lambda, Plot2)
+Plot2 <- melt(Plot2, id = "lambda", variable_name = "Covariate")
+
+# Plot for Group Penalty
+ggplot(Plot1, aes(lambda, value)) + 
+  geom_line(aes(colour = Covariate)) +
+  scale_colour_manual(values = c('pink','orange','cadetblue','chartreuse','cornflowerblue','coral3',
+                                 'red','blue','cyan','darkblue','darkgoldenrod1','darkmagenta',
+                                 'darkgreen','darkolivegreen1','darkorchid','gold3','black','gray',
+                                 'deeppink3','lightcyan4','indianred4','hotpink2','lightsalmon3','lightslateblue',
+                                 'mediumvioletred','midnightblue','mediumorchid2','lightseagreen','lightsalmon4','olivedrab1',
+                                 'rosybrown3','seagreen2','sienna1','yellow2','tan','olivedrab4'))+
+  ggtitle("A Plot of Coefficients vs. Lambda for Auto Insurance Claims Data \n Group Penalty") + 
+  xlab("Lambda") + 
+  ylab("Coefficient Value") + 
+  theme(legend.position = "right")
+
+# Plot for Group Elastic Net Penalty
+ggplot(Plot2, aes(lambda, value)) + 
+  geom_line(aes(colour = Covariate)) +
+  scale_colour_manual(values = c('pink','orange','cadetblue','chartreuse','cornflowerblue','coral3',
+                                 'red','blue','cyan','darkblue','darkgoldenrod1','darkmagenta',
+                                 'darkgreen','darkolivegreen1','darkorchid','gold3','black','gray',
+                                 'deeppink3','lightcyan4','indianred4','hotpink2','lightsalmon3','lightslateblue',
+                                 'mediumvioletred','midnightblue','mediumorchid2','lightseagreen','lightsalmon4','olivedrab1',
+                                 'rosybrown3','seagreen2','sienna1','yellow2','tan','olivedrab4'))+
+  ggtitle("A Plot of Coefficients vs. Lambda for Auto Insurance Claims Data \n Group Elastic Net Penalty") + 
+  xlab("Lambda") + 
+  ylab("Coefficient Value") + 
+  theme(legend.position = "right")
