@@ -54,6 +54,18 @@ library(reshape)
 library(ggplot2)
 
 #######################################################################################
+# simulation from Tweedie for Figure 1 in the PDF 
+y <- rtweedie(1000, xi=1.75, mu=1, phi=2.5)
+
+ggplot() + aes(y)+geom_histogram(aes(fill = ..count..),binwidth=1)+
+  scale_fill_gradient("Count", low = "green", high = "red")+
+  labs(title = "1000 Samples from a Tweedie Dsitribution")+ 
+  xlab("Samples")+
+  theme_classic() + theme(
+    axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+    axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+#######################################################################################
 #Checking codition of convergence
 ConvCheck=function(B.old,B.new,tol){
   check=rep(NA,length(B.old))
