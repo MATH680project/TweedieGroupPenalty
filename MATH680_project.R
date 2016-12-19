@@ -10,8 +10,47 @@
 #Submitted to:
 #Yi Yang
 
-######################################################################
+#######################################################################################
+## Perform a Group Penalty Elastic Net algorithm
+#######################################################################################
+##  GroupLasso Function:
+##    Arguments
+##    
+##      x:              an n row by p column data matrix, each row is
+##                      an observed data point
+##      y:              an n row by 1 column predictors
+##      lambda:         tuning parameter, a randomly generated value from a 
+##                      uniform distribution between 1 and 10
+##      rho:            the power of the variance-mean. It is a 
+##                      randomly generated value from a uniform
+##                      distribution between 1 and 2
+##      maxit:          the maximum number of iterations allowed
+##      tol:            the convergence tolerance for the algorithm
+##      grouping:       the groups
+##      n:              the number of observations
+##      b0.tilde.new:   the initialized intercept
+##      b.tilde.new:    the initialized coefficients
+##      x_num:          a matrix with only the numerical variables in the x matrix
+##      x_cat:          a matrix with only the categorical variables in the x matrix
+##      v.i:            the weight of each observation
+##      tau:            tuning parameter, a randomly generated value from a 
+##                      uniform distribution between 0 and 1
+##
+##   The function returns a list with elements
+##      total.iterations: the total number of outer loop iterations taken
+##      b0.tilde.new:     the intercept estimate
+##      b.tilde.new:      the coefficient estimates
+##
+##  ConvCheck Function:
+##    Arguments
+##    
+##      B.old:          the old coefficient estimates
+##      B.new:          the new coefficient estimates
+##      tol:            the convergence tolerance for the algorithm
+#######################################################################################
 
+#######################################################################################
+#Checking codition of convergence
 ConvCheck=function(B.old,B.new,tol){
   check=rep(NA,length(B.old))
   for (i in 1:length(B.old)){
@@ -22,7 +61,8 @@ ConvCheck=function(B.old,B.new,tol){
   return(sum(check))
 }
             
-########################################################################
+#######################################################################################
+
 #Group Lasso Function 
 GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new,x_num,x_cat,v.i){
   
@@ -129,7 +169,7 @@ GroupLasso=function(y,x,lambda,rho,maxit,tol,grouping,n,b0.tilde.new,b.tilde.new
   return(output)
 }      
                 
-########################################################################
+#######################################################################################
 #Convergence conditions
 maxit    =10000
 tol      =10^-8
@@ -171,8 +211,9 @@ x=cbind(x_num,x_cat)
 n=nrow(x)
 p=ncol(x)
 grouping=c(seq(1:ncol(x_num)),rep(ncol(x_num)+1,5),rep(ncol(x_num)+2,8),rep(ncol(x_num)+3,4))
-######################################################################
-#Data analysis 
+
+########################################################################################
+#Data analysis      
 set.seed(680)
 rho    = runif(1, 1,2)
 lambda = runif(1, 1,10)
